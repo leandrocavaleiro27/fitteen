@@ -17,6 +17,10 @@ function ProtectedRoute({ children }) {
   const { user, loading, isConfigured } = useAuth()
 
   if (!isConfigured) {
+    // Production must never expose dashboard without Supabase configured
+    if (import.meta.env.PROD) {
+      return <Navigate to="/auth" replace />
+    }
     return children
   }
 
@@ -89,7 +93,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/auth" replace />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

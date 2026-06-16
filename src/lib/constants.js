@@ -10,7 +10,8 @@ export const DEFAULT_TARGETS = {
 export const MAX_AI_SCANS_PER_DAY = 6
 
 export const INVITE_URL =
-  import.meta.env.VITE_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '')
+  import.meta.env.VITE_APP_URL ||
+  (typeof window !== 'undefined' ? window.location.origin : 'https://fit-teen.netlify.app')
 
 export const ROUTINE_PRESETS = [
   'Push Day',

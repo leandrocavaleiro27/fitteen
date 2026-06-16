@@ -36,8 +36,12 @@ export default function AuthPage() {
           <div className="flex gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-200">
             <AlertCircle className="h-5 w-5 shrink-0" />
             <p>
-              Supabase is not connected yet. Add <code className="text-amber-100">VITE_SUPABASE_URL</code> and{' '}
-              <code className="text-amber-100">VITE_SUPABASE_ANON_KEY</code> to <code>.env.local</code>.
+              Supabase is not connected yet. Add{' '}
+              <code className="text-amber-100">VITE_SUPABASE_URL</code> and{' '}
+              <code className="text-amber-100">VITE_SUPABASE_ANON_KEY</code>{' '}
+              {import.meta.env.PROD
+                ? 'in Netlify → Environment variables, then redeploy.'
+                : 'to .env.local.'}
             </p>
           </div>
         )}
@@ -56,6 +60,12 @@ export default function AuthPage() {
         <p className="text-center text-xs text-slate-600">
           By continuing you agree to log your own data securely. No public profile — sharing never includes your name.
         </p>
+
+        {import.meta.env.PROD && !isConfigured && (
+          <p className="text-center text-xs text-slate-500">
+            Production deploy: add env vars in Netlify, then trigger a new deploy.
+          </p>
+        )}
       </div>
     </div>
   )
