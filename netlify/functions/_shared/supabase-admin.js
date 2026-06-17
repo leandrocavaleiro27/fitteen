@@ -1,15 +1,23 @@
 /**
  * SERVER-ONLY Supabase admin client.
  * Uses SUPABASE_SERVICE_ROLE_KEY — never expose to the browser.
+ *
+ * URL: set VITE_SUPABASE_URL on Netlify (same as the client).
+ * Do not add a separate SUPABASE_URL env var — Netlify secret scanning
+ * flags duplicate values in the build output.
  */
 import { createClient } from '@supabase/supabase-js'
 
+function getSupabaseUrl() {
+  return process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
+}
+
 export function getSupabaseAdmin() {
-  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
+  const url = getSupabaseUrl()
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!url || !serviceKey) {
-    throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
+    throw new Error('Missing VITE_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
   }
 
   return createClient(url, serviceKey, {

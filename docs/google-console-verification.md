@@ -14,7 +14,7 @@ Use this guide for **OAuth**, **domain/property verification**, and **OAuth app 
 | Name | Fit Teen |
 | **Authorized JavaScript origins** | `https://fit-teen.netlify.app` |
 | | `http://localhost:5173` |
-| **Authorized redirect URIs** | `https://rxbmsrcvvgvtulcbdwwg.supabase.co/auth/v1/callback` |
+| **Authorized redirect URIs** | Supabase → Authentication → Providers → Google → copy **Callback URL** (ends with `/auth/v1/callback`) |
 
 Copy **Client ID** → Netlify env `VITE_GOOGLE_CLIENT_ID` and Supabase → Google provider.
 
@@ -85,9 +85,18 @@ Scopes used: **openid**, **email**, **profile** (via Supabase / Google Sign-In).
 
 ```
 VITE_GOOGLE_CLIENT_ID=<same Web client ID>
-VITE_SUPABASE_URL=https://rxbmsrcvvgvtulcbdwwg.supabase.co
+VITE_SUPABASE_URL=<Project URL from Supabase → Settings → API>
 VITE_SUPABASE_ANON_KEY=<publishable key>
 VITE_APP_URL=https://fit-teen.netlify.app
+```
+
+**Do not** add a separate `SUPABASE_URL` variable — use `VITE_SUPABASE_URL` only. Netlify treats duplicate URL values as exposed secrets. Serverless functions read `VITE_SUPABASE_URL` at runtime.
+
+Server-only (never `VITE_` prefix):
+
+```
+SUPABASE_SERVICE_ROLE_KEY=...
+GEMINI_API_KEY=...
 ```
 
 Redeploy after changes.
