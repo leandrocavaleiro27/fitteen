@@ -6,7 +6,7 @@
 # Public client vars are intentionally embedded in the JS bundle at build time.
 # Omit them from secret scanning (they are not server secrets; RLS protects data).
 [build.environment]
-  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY"
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY,VITE_GOOGLE_CLIENT_ID"
 
 [dev]
   command = "npm run dev"

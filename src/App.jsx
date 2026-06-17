@@ -1,11 +1,14 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { GoogleOAuthProvider } from '@react-oauth/google'
+import { GOOGLE_CLIENT_ID } from './lib/constants'
 import { useAuth } from './hooks/useAuth'
 import { useProfile } from './hooks/useProfile'
 import AuthPage from './pages/Auth'
 import OnboardingPage from './pages/Onboarding'
 import DashboardPage from './pages/Dashboard'
 import AnalyticsPage from './pages/Analytics'
+import PrivacyPage from './pages/Privacy'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -68,11 +71,11 @@ function OnboardingGate({ children }) {
 }
 
 export default function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/auth" element={<AuthPage />} />
+  const routes = (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
           <Route
             path="/dashboard"
             element={
@@ -96,6 +99,15 @@ export default function App() {
           <Route path="*" element={<Navigate to="/auth" replace />} />
         </Routes>
       </BrowserRouter>
+  )
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      {GOOGLE_CLIENT_ID ? (
+        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>{routes}</GoogleOAuthProvider>
+      ) : (
+        routes
+      )}
     </QueryClientProvider>
   )
 }

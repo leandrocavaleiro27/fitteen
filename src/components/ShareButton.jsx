@@ -1,5 +1,5 @@
 import { Share2 } from 'lucide-react'
-import { APP_NAME } from '../lib/constants'
+import { APP_NAME, isCardioExercise } from '../lib/constants'
 
 /**
  * Shares workout/milestone stats WITHOUT any user PII (no display name, no email).
@@ -46,15 +46,30 @@ export function buildWorkoutShareLines(workout, proteinToday) {
 
   for (const ex of workout.exercises || []) {
     const sets = ex.exercise_sets || []
-    const best = sets.reduce(
-      (max, s) => {
-        const w = Number(s.weight_kg)
-        return w > max.weight ? { weight: w, reps: s.reps } : max
-      },
-      { weight: 0, reps: 0 }
-    )
-    if (best.weight > 0) {
-      lines.push(`${ex.exercise_name}: ${best.weight} kg × ${best.reps}`)
+    const cardio = isCardioExercise(ex.exercise_name)
+
+    if (cardio) {
+      const best = sets.reduce(
+        (max, s) => {
+          const d = Number(s.distance_km)
+          return d > max.distance ? { distance: d, min: s.duration_min } : max
+        },
+        { distance: 0, min: 0 }
+      )
+      if (best.distance > 0) {
+        lines.push(`${ex.exercise_name}: ${best.distance} km in ${best.min} min`)
+      }
+    } else {
+      const best = sets.reduce(
+        (max, s) => {
+          const w = Number(s.weight_kg)
+          return w > max.weight ? { weight: w, reps: s.reps } : max
+        },
+        { weight: 0, reps: 0 }
+      )
+      if (best.weight > 0) {
+        lines.push(`${ex.exercise_name}: ${best.weight} kg × ${best.reps}`)
+      }
     }
   }
 

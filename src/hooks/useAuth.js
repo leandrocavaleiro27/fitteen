@@ -25,7 +25,18 @@ export function useAuth() {
     return () => subscription.unsubscribe()
   }, [])
 
-  const signInWithGoogle = async () => {
+  /** Popup sign-in — stays on fit-teen.netlify.app (no Supabase URL in address bar). */
+  const signInWithGoogleToken = async (idToken) => {
+    if (!supabase) throw new Error('Supabase not configured')
+    const { error } = await supabase.auth.signInWithIdToken({
+      provider: 'google',
+      token: idToken,
+    })
+    if (error) throw error
+  }
+
+  /** Fallback if Google Client ID is not configured */
+  const signInWithGoogleRedirect = async () => {
     if (!supabase) throw new Error('Supabase not configured')
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -45,7 +56,8 @@ export function useAuth() {
     session,
     user: session?.user ?? null,
     loading,
-    signInWithGoogle,
+    signInWithGoogleToken,
+    signInWithGoogleRedirect,
     signOut,
     isConfigured: isSupabaseConfigured,
   }

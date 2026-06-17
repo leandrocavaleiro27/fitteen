@@ -1,18 +1,40 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { GoogleLogin } from '@react-oauth/google'
 import { Zap, AlertCircle } from 'lucide-react'
-import { APP_NAME } from '../lib/constants'
+import { APP_NAME, GOOGLE_CLIENT_ID } from '../lib/constants'
 import { useAuth } from '../hooks/useAuth'
 
 export default function AuthPage() {
-  const { signInWithGoogle, isConfigured } = useAuth()
+  const navigate = useNavigate()
+  const { signInWithGoogleToken, signInWithGoogleRedirect, isConfigured } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const handleGoogle = async () => {
+  const usePopup = Boolean(GOOGLE_CLIENT_ID)
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    if (!credentialResponse?.credential) {
+      setError('Google did not return a sign-in token')
+      return
+    }
     setLoading(true)
     setError(null)
     try {
-      await signInWithGoogle()
+      await signInWithGoogleToken(credentialResponse.credential)
+      navigate('/dashboard', { replace: true })
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleRedirectFallback = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      await signInWithGoogleRedirect()
     } catch (err) {
       setError(err.message)
       setLoading(false)
@@ -46,26 +68,55 @@ export default function AuthPage() {
           </div>
         )}
 
-        <button
-          type="button"
-          className="btn-primary w-full text-lg neon-glow-lime"
-          onClick={handleGoogle}
-          disabled={loading || !isConfigured}
-        >
-          {loading ? 'Redirecting…' : 'Continue with Google'}
-        </button>
+        {usePopup && isConfigured ? (
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-full overflow-hidden rounded-xl [&>div]:!w-full [&>div]:!flex [&>div]:!justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setError('Google sign-in was cancelled or failed')}
+                theme="filled_black"
+                size="large"
+                text="continue_with"
+                shape="rectangular"
+                width="320"
+              />
+            </div>
+            <p className="text-center text-xs text-slate-500">
+              Sign in stays on {APP_NAME} — Google popup only, no redirect to Supabase.
+            </p>
+          </div>
+        ) : (
+          <>
+            {!GOOGLE_CLIENT_ID && isConfigured && (
+              <p className="text-center text-xs text-amber-200/90">
+                Add <code className="text-amber-100">VITE_GOOGLE_CLIENT_ID</code> in Netlify for
+                a cleaner Google popup (recommended).
+              </p>
+            )}
+            <button
+              type="button"
+              className="btn-primary w-full text-lg neon-glow-lime"
+              onClick={handleRedirectFallback}
+              disabled={loading || !isConfigured}
+            >
+              {loading ? 'Redirecting…' : 'Continue with Google'}
+            </button>
+          </>
+        )}
+
+        {loading && usePopup && (
+          <p className="text-center text-sm text-slate-400">Signing you in…</p>
+        )}
 
         {error && <p className="text-center text-sm text-red-400">{error}</p>}
 
         <p className="text-center text-xs text-slate-600">
-          By continuing you agree to log your own data securely. No public profile — sharing never includes your name.
+          By continuing you agree to our{' '}
+          <a href="/privacy" className="text-cyan-500 hover:text-cyan-400">
+            Privacy Policy
+          </a>
+          . No public profile — sharing never includes your name.
         </p>
-
-        {import.meta.env.PROD && !isConfigured && (
-          <p className="text-center text-xs text-slate-500">
-            Production deploy: add env vars in Netlify, then trigger a new deploy.
-          </p>
-        )}
       </div>
     </div>
   )

@@ -16,7 +16,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useProfile } from '../hooks/useProfile'
 import { useAnalytics } from '../hooks/useAnalytics'
 import { buildExerciseVolumeHistory, maxVolumePR, formatVolume } from '../lib/volume'
-import { EXERCISE_PRESETS } from '../lib/constants'
+import { EXERCISE_PRESETS, CARDIO_EXERCISE_PRESETS, isCardioExercise } from '../lib/constants'
 
 const PERIODS = ['week', 'month', 'year']
 
@@ -53,9 +53,15 @@ export default function AnalyticsPage() {
   )
   const selectedHistory = volumeHistory[exerciseFilter] || []
   const pr = maxVolumePR(selectedHistory)
+  const filterIsCardio = isCardioExercise(exerciseFilter)
 
   const prShareLines = pr
-    ? [`New ${exerciseFilter} volume PR: ${formatVolume(pr.volume)}`, `Date: ${pr.date}`]
+    ? [
+        filterIsCardio
+          ? `New ${exerciseFilter} distance PR: ${formatVolume(pr.volume, true)}`
+          : `New ${exerciseFilter} volume PR: ${formatVolume(pr.volume)}`,
+        `Date: ${pr.date}`,
+      ]
     : []
 
   return (
@@ -147,7 +153,7 @@ export default function AnalyticsPage() {
             </div>
 
             <p className="text-xs text-slate-500">
-              Progress = total volume per session (Σ kg × reps). Empty sets ignored.
+              Strength: Σ(kg × reps). Running/cardio: total distance (km) per session.
             </p>
 
             <select
@@ -155,11 +161,13 @@ export default function AnalyticsPage() {
               value={exerciseFilter}
               onChange={(e) => setExerciseFilter(e.target.value)}
             >
-              {[...new Set([...EXERCISE_PRESETS, ...exerciseNames])].map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
+              {[...new Set([...EXERCISE_PRESETS, ...CARDIO_EXERCISE_PRESETS, ...exerciseNames])].map(
+                (name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                )
+              )}
             </select>
 
             {selectedHistory.length === 0 ? (
@@ -168,8 +176,12 @@ export default function AnalyticsPage() {
               <>
                 {pr && (
                   <div className="rounded-xl border border-lime-400/30 bg-lime-400/10 px-4 py-3">
-                    <p className="text-xs uppercase text-lime-400/80">Best session volume</p>
-                    <p className="text-2xl font-black text-lime-400">{formatVolume(pr.volume)}</p>
+                    <p className="text-xs uppercase text-lime-400/80">
+                      {filterIsCardio ? 'Best session distance' : 'Best session volume'}
+                    </p>
+                    <p className="text-2xl font-black text-lime-400">
+                      {formatVolume(pr.volume, filterIsCardio)}
+                    </p>
                     <p className="text-xs text-slate-400">{pr.date}</p>
                   </div>
                 )}
@@ -183,12 +195,15 @@ export default function AnalyticsPage() {
                       <Tooltip
                         contentStyle={chartTooltipStyle}
                         labelFormatter={formatDateLabel}
-                        formatter={(v) => [formatVolume(v), 'Volume']}
+                        formatter={(v) => [
+                          formatVolume(v, filterIsCardio),
+                          filterIsCardio ? 'Distance' : 'Volume',
+                        ]}
                       />
                       <Line
                         type="monotone"
                         dataKey="volume"
-                        name="Volume (kg·reps)"
+                        name={filterIsCardio ? 'Distance (km)' : 'Volume (kg·reps)'}
                         stroke="#fb923c"
                         strokeWidth={3}
                         dot={{ fill: '#fb923c', r: 4 }}

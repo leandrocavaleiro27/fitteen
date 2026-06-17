@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
-import { todayISO } from '../lib/constants'
+import { todayISO, isCardioExercise } from '../lib/constants'
 
 const WORKOUT_SELECT = `
   id,
@@ -14,10 +14,25 @@ const WORKOUT_SELECT = `
       id,
       weight_kg,
       reps,
+      distance_km,
+      duration_min,
       set_order
     )
   )
 `
+
+function isValidStrengthSet(s) {
+  return s.weight_kg && s.reps && Number(s.weight_kg) > 0 && Number(s.reps) > 0
+}
+
+function isValidCardioSet(s) {
+  return (
+    s.distance_km &&
+    s.duration_min &&
+    Number(s.distance_km) > 0 &&
+    Number(s.duration_min) > 0
+  )
+}
 
 export function useWorkouts(userId, date = todayISO()) {
   const queryClient = useQueryClient()
@@ -50,8 +65,9 @@ export function useWorkouts(userId, date = todayISO()) {
         const name = row.exerciseName?.trim()
         if (!name) continue
 
-        const validSets = (row.sets || []).filter(
-          (s) => s.weight_kg && s.reps && Number(s.weight_kg) > 0 && Number(s.reps) > 0
+        const cardio = isCardioExercise(name)
+        const validSets = (row.sets || []).filter((s) =>
+          cardio ? isValidCardioSet(s) : isValidStrengthSet(s)
         )
         if (!validSets.length) continue
 
@@ -62,12 +78,22 @@ export function useWorkouts(userId, date = todayISO()) {
           .single()
         if (eErr) throw eErr
 
-        const setsPayload = validSets.map((s, i) => ({
-          exercise_id: exercise.id,
-          weight_kg: Number(s.weight_kg),
-          reps: Number(s.reps),
-          set_order: i + 1,
-        }))
+        const setsPayload = validSets.map((s, i) => {
+          if (cardio) {
+            return {
+              exercise_id: exercise.id,
+              distance_km: Number(s.distance_km),
+              duration_min: Number(s.duration_min),
+              set_order: i + 1,
+            }
+          }
+          return {
+            exercise_id: exercise.id,
+            weight_kg: Number(s.weight_kg),
+            reps: Number(s.reps),
+            set_order: i + 1,
+          }
+        })
 
         const { error: sErr } = await supabase.from('exercise_sets').insert(setsPayload)
         if (sErr) throw sErr

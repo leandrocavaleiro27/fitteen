@@ -37,6 +37,27 @@ export const EXERCISE_PRESETS = [
   'Bicep Curl',
 ]
 
+export const CARDIO_EXERCISE_PRESETS = [
+  'Running',
+  'Jogging',
+  'Treadmill',
+  'Cycling',
+  'Swimming',
+  'Rowing',
+  'Elliptical',
+  'Walking',
+]
+
+const CARDIO_MATCH = new Set(CARDIO_EXERCISE_PRESETS.map((n) => n.toLowerCase()))
+
+export function isCardioExercise(name) {
+  if (!name?.trim()) return false
+  const lower = name.trim().toLowerCase()
+  return CARDIO_MATCH.has(lower) || /\b(run|running|jog|cycle|swim|row|walk)\b/.test(lower)
+}
+
+export const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
+
 export function todayISO() {
   return new Date().toISOString().slice(0, 10)
 }
