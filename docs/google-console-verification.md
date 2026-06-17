@@ -45,10 +45,9 @@ If Google asks you to verify ownership of `fit-teen.netlify.app`:
 
 1. Search Console → Add property → URL prefix → `https://fit-teen.netlify.app`
 2. Choose **HTML file** verification
-3. Download the file (e.g. `google1234567890abcdef.html`)
-4. Place it in this repo: **`public/google1234567890abcdef.html`** (exact filename Google gives you)
-5. Commit, push, wait for Netlify deploy
-6. Click **Verify** in Search Console
+3. File included in repo: **`public/google20c09b3b40932445.html`**
+4. After Netlify deploy, open `https://fit-teen.netlify.app/google20c09b3b40932445.html` — should show the verification string
+5. Click **Verify** in Search Console
 
 ### Option B — HTML meta tag
 
